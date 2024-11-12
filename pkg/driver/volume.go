@@ -123,13 +123,8 @@ func (vol *Volume) Unstage(stagingTargetPath string) error {
 		glog.Warningf("staging path %s differs for volume %s at %s", stagingTargetPath, vol.VolumeId, vol.StagedPath)
 	}
 
-	if err := vol.unmounter.Unmount(); err != nil {
+	if err := mount.CleanupMountWithForce(stagingTargetPath, vol.unmounter, true, time.Minute * 5); err != nil {
 		glog.Errorf("error unmounting volume during unstage: %s, err: %v", stagingTargetPath, err)
-		return err
-	}
-
-	if err := os.Remove(stagingTargetPath); err != nil && !os.IsNotExist(err) {
-		glog.Errorf("error removing staging path for volume %s at %s, err: %v", vol.VolumeId, stagingTargetPath, err)
 		return err
 	}
 
